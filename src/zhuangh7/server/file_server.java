@@ -3,11 +3,14 @@ package zhuangh7.server;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.Socket;
 import java.util.Random;
 
@@ -15,11 +18,85 @@ import zhuangh7.tools.timeTool;
 
 public class file_server extends Thread{
 	Socket socket;
-	String filePath = "";
+	boolean stop = false;
+
 	file_server(Socket s){
 		socket = s;
 	}
 	public void run(){
+		try {
+			BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream(),"UTF-8"));
+			String fun = br.readLine();
+			if(fun.equals("up")){
+				upload();
+			}
+			else if(fun.equals("down")){
+				download();
+			}
+			else if(fun.equals("delete")){
+				
+			}
+			else if(fun.equals("rename")){
+				
+			}
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+    }
+	public void delete(String path){
+		File f = new File(path);
+		if(f.exists()){
+			f.delete();
+		}
+		System.out.println("传输出现故障，删除已保存文件");
+	}
+	public void download(){
+		String filePath = "";
+		try {
+			BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(),"UTF-8"));
+			BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream(),"UTF-8"));
+			filePath=filePath+"\\"+br.readLine();//从服务器获取文件名
+			File fff = new File(".");
+			String nowPath = fff.getCanonicalPath()+filePath;
+			File f = new File(nowPath);
+			FileInputStream fis = new FileInputStream(f);
+			double sumL = 0;
+			long l = f.length();
+			byte[] sendBytes = new byte[1024];  
+			int length = 0;
+			DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
+			dos.writeLong(l);
+			while ((length = fis.read(sendBytes, 0, sendBytes.length)) > 0 && !stop) {  
+                sumL += length;    
+               // System.out.println("已传输："+((sumL/l)*100)+"%");  
+                dos.write(sendBytes, 0, length);  
+                dos.flush(); 
+                if(!stop){
+    	            
+	            }
+	            else{   
+	            	System.out.println("传输终止");
+	            	break;
+	            }
+			}
+			System.out.println("传输完成");
+			
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}//不管三七二十一咱先把这个文件名字写了是吧
+		
+	}
+	public void upload(){
+		String filePath="";
 		byte[] inputByte = null;  
         int length = 0;  
         DataInputStream dis = null;  
@@ -59,13 +136,24 @@ public class file_server extends Thread{
                     	//System.out.println("1");
                     	break;
                     }  
+                    if(!stop){
+        	            
+    	            }
+    	            else{   
+    	            	System.out.println("传输终止");
+    	            	break;
+    	            }
                 }  
                 bw.write("close\n");
                 bw.flush();
                 bw.close();
                 br.close();
                 fos.close();
-                System.out.println("完成接收："+filePath);  
+                if(!stop){
+                	System.out.println("完成接收："+filePath);
+                }else{
+                	System.out.println("接受出现问题");
+                }
             } finally {  
                 if (fos != null)  
                     fos.close();
@@ -78,12 +166,8 @@ public class file_server extends Thread{
             e.printStackTrace();
             delete(filePath);
         }  
-    }  
-	public void delete(String path){
-		File f = new File(path);
-		if(f.exists()){
-			f.delete();
-		}
-		System.out.println("传输出现故障，删除已保存文件");
+	}
+	public void Stop(){
+		stop = true;
 	}
 }
