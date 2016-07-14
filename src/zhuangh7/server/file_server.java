@@ -14,7 +14,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.Socket;
 import java.util.Random;
 
-import zhuangh7.tools.timeTool;
 
 public class file_server extends Thread{
 	Socket socket;
@@ -55,16 +54,30 @@ public class file_server extends Thread{
 		}
 		System.out.println("传输出现故障，删除已保存文件");
 	}
+	
+	public void out(String s) throws IOException{
+		BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(),"UTF-8"));
+		bw.write(s+'\n');
+	}
+	
+	public String in() throws UnsupportedEncodingException, IOException{
+		BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream(),"UTF-8"));
+		return br.readLine();
+	}
 	public void download(){
 		String filePath = "";
 		try {
-			BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(),"UTF-8"));
-			BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream(),"UTF-8"));
-			filePath=filePath+"\\"+br.readLine();//从服务器获取文件名
+			//BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(),"UTF-8"));
+			//BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream(),"UTF-8"));
+			filePath=filePath+"\\"+in();//从服务器获取文件名
+			
 			File fff = new File(".");
 			String nowPath = fff.getCanonicalPath()+filePath;
+			
 			File f = new File(nowPath);
 			FileInputStream fis = new FileInputStream(f);
+			
+			
 			double sumL = 0;
 			long l = f.length();
 			byte[] sendBytes = new byte[1024];  
