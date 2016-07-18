@@ -141,6 +141,7 @@ public class ClientServer extends Thread{
 									out("get");
 									fos.flush();
 									fos.close();
+									MainNode.leftStorage-=flength;
 									break;
 								}  
 							}  
@@ -209,8 +210,11 @@ public class ClientServer extends Thread{
 					String ffff = in();
 					File fffff = new File(f2,ffff);
 					long ffflength = fffff.length();
-					MainNode.leftStorage-=ffflength;
-					fffff.delete();
+					MainNode.leftStorage+=ffflength;
+					while(fffff.exists()){
+						fffff.delete();
+					//MainNode.leftStorage+=fffff.length();
+					}
 					out("get");
 					break;
 				}
