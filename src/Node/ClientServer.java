@@ -71,9 +71,13 @@ public class ClientServer extends Thread{
 	 */
 	
 	private void delete(String file){
-		File f = new File(file);
-		if(f.exists()){
-			f.delete();
+		File f = new File(MainNode.root_folder);
+		if(!f.exists()){
+		f.mkdirs();
+		} 
+		File ff = new File(f,file);
+		if(ff.exists()){
+			ff.delete();
 		}
 	}
 	//删除文件
@@ -146,6 +150,10 @@ public class ClientServer extends Thread{
 									}  
 								}  
 							}finally{
+								if(fos!=null){
+									fos.flush();
+									fos.close();
+								}
 								System.out.println("传输中断，删除本地文件"+fileName);
 								delete(fileName);
 								
@@ -201,7 +209,7 @@ public class ClientServer extends Thread{
 					break;
 				case"delete":
 					out("get");
-					File f2 = new File(MainNode.root_folder);
+					/*File f2 = new File(MainNode.root_folder);
 					if(!f2.exists()){
 					f2.mkdirs();
 					} 
@@ -212,7 +220,8 @@ public class ClientServer extends Thread{
 					while(fffff.exists()){
 						fffff.delete();
 					//MainNode.leftStorage+=fffff.length();
-					}
+					}*/
+					delete(in());
 					out("get");
 					break;
 				}
