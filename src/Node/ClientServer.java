@@ -173,11 +173,16 @@ public class ClientServer extends Thread{
 					break;
 				case"delete":
 					out("get");
+					File f2 = new File(MainNode.root_folder);
+					if(!f2.exists()){
+					f2.mkdirs();
+					} 
 					String ffff = in();
-					File fffff = new File(ffff);
+					File fffff = new File(f2,ffff);
 					long ffflength = fffff.length();
 					MainNode.leftStorage-=ffflength;
-					delete(in());
+					fffff.delete();
+					out("get");
 					break;
 				}
 				break;
