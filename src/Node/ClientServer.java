@@ -122,6 +122,9 @@ public class ClientServer extends Thread{
 						}catch(FileNotFoundException e3){
 							System.out.println("传输中断，删除本地文件");
 							delete(fileName);
+						}catch(Exception E){
+							System.out.println("传输中断，删除本地文件");
+							delete(fileName);
 						}
 					}else{
 						out("false");
