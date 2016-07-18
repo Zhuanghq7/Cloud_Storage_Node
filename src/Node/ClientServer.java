@@ -115,7 +115,6 @@ public class ClientServer extends Thread{
 						out("get");
 						String fileName = in();
 						out("get");
-						try{
 							File f = new File(MainNode.root_folder);
 							if(!f.exists()){
 							f.mkdirs();
@@ -131,27 +130,26 @@ public class ClientServer extends Thread{
 							System.out.println("开始下载文件："+fileName);  
 							double sumL = 0;
 							int length;
-							while ((length = dis.read(inputByte, 0, inputByte.length)) > 0) {  
-								fos.write(inputByte,0,inputByte.length);
-								fos.flush();
-								sumL+=length;
-								System.out.println("已传输："+sumL/(flength/100)+"%");
-								if(sumL>=flength){//传输完成
-									//System.out.println("1");
-									out("get");
+							try{
+								while ((length = dis.read(inputByte, 0, inputByte.length)) > 0) {  
+									fos.write(inputByte,0,inputByte.length);
 									fos.flush();
-									fos.close();
-									MainNode.leftStorage-=flength;
-									break;
+									sumL+=length;
+									System.out.println("已传输："+sumL/(flength/100)+"%");
+									if(sumL>=flength){//传输完成
+										//System.out.println("1");
+										out("get");
+										fos.flush();
+										fos.close();
+										MainNode.leftStorage-=flength;
+										break;
+									}  
 								}  
-							}  
-						}catch(FileNotFoundException e3){
-							System.out.println("传输中断，删除本地文件");
-							delete(fileName);
-						}catch(Exception E){
-							System.out.println("传输中断，删除本地文件");
-							delete(fileName);
-						}
+							}finally{
+								System.out.println("传输中断，删除本地文件"+fileName);
+								delete(fileName);
+								
+							}
 					}else{
 						out("false");//seeyou
 					}
@@ -222,10 +220,10 @@ public class ClientServer extends Thread{
 			}
 		} catch (UnsupportedEncodingException e) {
 			// TODO Auto-generated catch block
-			//e.printStackTrace();
+			e.printStackTrace();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			//e.printStackTrace();
+			e.printStackTrace();
 		}
 	}
 }
