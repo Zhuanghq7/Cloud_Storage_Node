@@ -6,6 +6,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -84,34 +85,41 @@ public class ClientServer extends Thread{
 					out("get");
 					DataInputStream dis = new DataInputStream(s.getInputStream());
 					long flength = dis.readLong();
-					if(flength>=MainNode.leftStorage){
+					if(flength<=MainNode.leftStorage){
 						out("get");
 						String fileName = in();
 						out("get");
-						File f = new File(fileName);
-						FileOutputStream fos = new FileOutputStream(f);
-						byte[] inputByte = new byte[1024];     
-						System.out.println("开始下载文件："+fileName);  
-						double sumL = 0;
-						int length;
 						try{
-						while ((length = dis.read(inputByte, 0, inputByte.length)) > 0) {  
-							fos.write(inputByte,0,inputByte.length);
-							fos.flush();
-							sumL+=length;
-							System.out.println("已传输："+sumL/(flength/100)+"%");
-							if(sumL>=flength){
-								//System.out.println("1");
-								break;
+							File f = new File(MainNode.root_folder);
+							if(!f.exists()){
+							f.mkdirs();
+							} 
+							File file = new File(f,fileName);
+							if(!file.exists()){
+								file.createNewFile();
+							}
+						//File f = new File(MainNode.root_folder+"\\"+fileName);
+
+							FileOutputStream fos = new FileOutputStream(file);
+	
+							byte[] inputByte = new byte[1024];     
+							System.out.println("开始下载文件："+fileName);  
+							double sumL = 0;
+							int length;
+							while ((length = dis.read(inputByte, 0, inputByte.length)) > 0) {  
+								fos.write(inputByte,0,inputByte.length);
+								fos.flush();
+								sumL+=length;
+								System.out.println("已传输："+sumL/(flength/100)+"%");
+								if(sumL>=flength){
+									//System.out.println("1");
+									out("get");
+									fos.flush();
+									fos.close();
+									break;
+								}  
 							}  
-						}  
-						}catch(Exception e3){
-							if(s!=null){
-								s.close();
-							}
-							if(fos!=null){
-								fos.close();
-							}
+						}catch(FileNotFoundException e3){
 							System.out.println("传输中断，删除本地文件");
 							delete(fileName);
 						}
@@ -122,32 +130,42 @@ public class ClientServer extends Thread{
 				case"down":
 					out("get");
 					String fileName = in();
-					File f = new File(fileName);
-					FileInputStream fis = new FileInputStream(f);
-					out("get");
-					long l = f.length();
-					DataOutputStream doss = new DataOutputStream(s.getOutputStream());
-					doss.writeLong(l);
-					waitGet();
-					//交涉完成
-					byte[] inputByte = new byte[1024];     
-					System.out.println("开始传送文件："+fileName);  
-					double sumL = 0;
-					int length;
-					try{
-					while ((length = fis.read(inputByte, 0, inputByte.length)) > 0) {  
-						doss.write(inputByte,0,inputByte.length);
-						doss.flush();
-						sumL+=length;
-						System.out.println("已传输："+sumL/(l/100)+"%");
-						if(sumL>=l){
-							//System.out.println("1");
-							break;
-						}  
-					}  
-					}
-					catch(Exception e){
-						
+					File f = new File(MainNode.root_folder);
+					if(!f.exists()){
+						f.mkdirs();
+					} 
+					File file = new File(f,fileName);
+					if(!file.exists()){
+						out("false");
+					}else{
+						FileInputStream fis = new FileInputStream(file);
+						out("get");
+						long l = file.length();
+						DataOutputStream doss = new DataOutputStream(s.getOutputStream());
+						waitGet();
+						doss.writeLong(l);
+						waitGet();
+						//交涉完成
+						byte[] inputByte = new byte[1024];     
+						System.out.println("开始传送文件："+fileName);  
+						double sumL = 0;
+						int length;
+						try{
+							while ((length = fis.read(inputByte, 0, inputByte.length)) > 0) {  
+								doss.write(inputByte,0,inputByte.length);
+								doss.flush();
+								sumL+=length;
+								System.out.println("已传输："+sumL/(l/100)+"%");
+								if(sumL>=l){
+									//System.out.println("1");
+									break;
+								}  
+							}  
+						}
+						catch(Exception e){
+							
+						}
+					//File f = new File(MainNode.root_folder+"\\"+fileName);
 					}
 					if(s!=null){
 						s.close();
