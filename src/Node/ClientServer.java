@@ -16,6 +16,7 @@ import java.net.Socket;
 
 public class ClientServer extends Thread{
 	private Socket s;
+	private boolean success = false;
 	private boolean isConnect = false;
 	
 	public ClientServer(Socket s){
@@ -105,6 +106,7 @@ public class ClientServer extends Thread{
 				//不需要关闭socket，由服务器关闭，防止服务器存储出现问题
 				break;
 			case"second":
+				success = false;
 				out("get");
 				//功能连接
 				String fun2 = in();
@@ -142,10 +144,11 @@ public class ClientServer extends Thread{
 									System.out.println("已传输："+sumL/(flength/100)+"%");
 									if(sumL>=flength){//传输完成
 										//System.out.println("1");
-										out("get");
 										fos.flush();
 										fos.close();
+										out("get");
 										MainNode.leftStorage-=flength;
+										success = true;
 										break;
 									}  
 								}  
@@ -154,8 +157,12 @@ public class ClientServer extends Thread{
 									fos.flush();
 									fos.close();
 								}
-								System.out.println("传输中断，删除本地文件"+fileName);
-								delete(fileName);
+								if(!success){
+									System.out.println("传输中断，删除本地文件"+fileName);
+									delete(fileName);
+								}else{
+									System.out.println("接收文件成功");
+								}
 								
 							}
 					}else{
@@ -194,17 +201,23 @@ public class ClientServer extends Thread{
 								System.out.println("已传输："+sumL/(l/100)+"%");
 								if(sumL>=l){
 									//System.out.println("1");
+									fis.close();
+									success = true;
 									break;
 								}  
 							}  
 						}
-						catch(Exception e){
-							
+						finally{
+							if(success){
+								System.out.println("传输完成");
+								if(fis!=null){
+									fis.close();
+									
+									System.out.println("关闭文件写入流");
+								}
+							}
 						}
 					//File f = new File(MainNode.root_folder+"\\"+fileName);
-					}
-					if(s!=null){
-						s.close();
 					}
 					break;
 				case"delete":
@@ -222,6 +235,7 @@ public class ClientServer extends Thread{
 					//MainNode.leftStorage+=fffff.length();
 					}*/
 					delete(in());
+					System.out.println("删除文件");
 					out("get");
 					break;
 				}
